@@ -1,0 +1,178 @@
+{
+  "points": [
+    {
+      "id": "1",
+      "type": "Gendarmerie",
+      "nom": "Gendarmerie de Patte d’Oie",
+      "ville": "Ouagadougou",
+      "contact": "20 30 45 78"
+    },
+    {
+      "id": "2",
+      "type": "Police",
+      "nom": "Commissariat Central",
+      "ville": "Bobo-Dioulasso",
+      "contact": "20 31 12 56"
+    },
+    {
+      "id": "3",
+      "type": "Pompiers",
+      "nom": "Caserne Est",
+      "ville": "Ouagadougou",
+      "contact": "18"
+    },
+    {
+      "id": 1750165890333,
+      "nom": "Yagma",
+      "type": "Police",
+      "ville": "Ouagadougou",
+      "contact": "18394754759"
+    }
+  ],
+  "signalements": [
+    {
+      "id": "dec3",
+      "type": "vol",
+      "titre": "On a vole mon sac sur la rue de Yatenga",
+      "description": "khjkhjkhjghjfkj jnknkjhj  jhjh",
+      "localisation": "Ouagadougou, yatenga",
+      "userId": 1
+    },
+    {
+      "id": "7df5",
+      "type": "vol",
+      "titre": "Vol de documents",
+      "description": "J'ai ete apprehende par deux jeunes en moto qui m'ont retirer mon a main qui contenait mes documents d'identites et une somme de 200.000 fcfa. Les faits se sont passes dans la nuit du 16 juin sur la RN2 dans le quartier Kilwin",
+      "localisation": "Kilwin"
+    }
+  ],
+  "messages": [
+    {
+      "id": "1749938318602",
+      "auteur": "Citoyen",
+      "citoyen_id": "1",
+      "contenu": "Bonjour",
+      "date": "2025-06-14T21:58:38.602Z"
+    },
+    {
+      "id": "1750116056474",
+      "auteur": "Citoyen",
+      "citoyen_id": "1",
+      "contenu": "Bonjour",
+      "date": "2025-06-16T23:20:56.474Z"
+    },
+    {
+      "id": "1750127951666",
+      "auteur": "Agent",
+      "citoyen_id": "1",
+      "contenu": "oui bonjour",
+      "date": "2025-06-17T02:39:11.666Z"
+    },
+    {
+      "id": "1750128000239",
+      "auteur": "Agent",
+      "citoyen_id": "1",
+      "contenu": "Desole du retard. Que pouvons nous faire pour vous",
+      "date": "2025-06-17T02:40:00.239Z"
+    },
+    {
+      "id": "1750134217034",
+      "auteur": "Agent",
+      "citoyen_id": "1",
+      "contenu": "j'attend votre retour",
+      "date": "2025-06-17T04:23:37.034Z"
+    },
+    {
+      "id": "1750134276681",
+      "auteur": "Citoyen",
+      "contenu": "ok il y a un rassemblement de gens sur le grand boulevard Tansoba",
+      "date": "2025-06-17T04:24:36.681Z"
+    }
+  ],
+  "alertes": [
+    {
+      "id": "1",
+      "ville": "Ouagadougou",
+      "niveau": "urgence",
+      "message": "Fusillade signalée au marché central",
+      "admin_id": 101,
+      "date_publication": "2025-06-10T17:30:00Z"
+    },
+    {
+      "id": "2",
+      "ville": "Bobo-Dioulasso",
+      "niveau": "alerte",
+      "message": "Rassemblement suspect dans le secteur 9",
+      "admin_id": 102,
+      "date_publication": "2025-06-09T09:15:00Z"
+    },
+    {
+      "id": 1750165806723,
+      "ville": "Kaya",
+      "niveau": "info",
+      "message": "Un couvrez-feu est instaure ce soir a 20h jusqu'a 5h du matin. Et ce jusqu'a nouvel ordre.",
+      "admin_id": 3,
+      "date_publication": "2025-06-17T13:10:06.723Z"
+    }
+  ],
+  "conseils": [
+    {
+      "id": "1",
+      "titre": "Reconnaître une arnaque en ligne",
+      "contenu": "Ne répondez jamais aux messages qui demandent vos infos personnelles...",
+      "categorie": "Numérique",
+      "theme": "arnaques",
+      "date_publication": "2025-06-11T10:00:00Z"
+    },
+    {
+      "id": "2",
+      "titre": "Prévenir un cambriolage",
+      "contenu": "Fermez toutes les issues et installez un éclairage extérieur à détection...",
+      "categorie": "Habitation",
+      "theme": "cambriolages",
+      "date_publication": "2025-06-10T09:00:00Z"
+    },
+    {
+      "id": "3",
+      "titre": "Numéros utiles pour les victimes",
+      "contenu": "Composez le 17 en cas d'urgence, 116000 pour une disparition...",
+      "categorie": "Famille",
+      "theme": "numéros utiles",
+      "date_publication": "2025-06-08T15:45:00Z"
+    }
+  ],
+  "utilisateurs": [
+    {
+      "id": "1",
+      "nom": "Awa Ouédraogo",
+      "email": "awa@example.com",
+      "mot_de_passe": "awa123",
+      "ville": "Ouagadougou",
+      "role": "citoyen"
+    },
+    {
+      "id": "2",
+      "nom": "Agent B",
+      "email": "agentb@example.com",
+      "mot_de_passe": "agent456",
+      "ville": "Bobo-Dioulasso",
+      "role": "agent"
+    },
+    {
+      "id": "3",
+      "nom": "Admin C",
+      "email": "admin@example.com",
+      "mot_de_passe": "admin789",
+      "ville": "Ouagadougou",
+      "role": "admin"
+    },
+    {
+      "id": "8085",
+      "nom": "Sam Sami",
+      "email": "sam@example.com",
+      "mot_de_passe": "sam1234",
+      "ville": "Gaoua",
+      "role": "citoyen"
+    }
+  ]
+}
