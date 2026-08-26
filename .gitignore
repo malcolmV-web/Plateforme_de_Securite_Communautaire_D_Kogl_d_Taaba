@@ -1,0 +1,33 @@
+#  Global
+.env
+.env.*
+.DS_Store
+.vscode/
+.idea/
+*.log
+
+# Ignorer tout ce qui est à la racine, sauf les dossiers de travail
+/*
+!/.gitignore
+!/django-backend/
+!/frontend/
+!/laravel-backend/
+
+#  Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.cache/
+
+#  Laravel Backend
+laravel-backend/vendor/
+laravel-backend/node_modules/
+laravel-backend/public/storage
+laravel-backend/storage/*.key
+laravel-backend/storage/framework/cache/*
+laravel-backend/storage/framework/sessions/*
+laravel-backend/storage/framework/views/*
+laravel-backend/storage/logs/*
+laravel-backend/bootstrap/cache/*
+laravel-backend/.env
+laravel-backend/.env.*

@@ -1,47 +1,47 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import api from "../../axios";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ChatAgent() {
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [messages, setMessages] = useState([]);
   const [reponse, setReponse] = useState("");
-  const [citoyens, setCitoyens] = useState([]);
-  const [citoyenActif, setCitoyenActif] = useState("");
+  const [citoyenActif, setCitoyenActif] = useState(searchParams.get("citoyen_id") || "");
 
-  // Charger tous les messages et citoyens
+  // L'agent voit toutes les conversations : /api/messages/ suffit, pas
+  // besoin de /api/users/ (reserve aux admins) pour lister les citoyens —
+  // on les deduit des messages eux-memes (citoyen + citoyen_nom).
   useEffect(() => {
-    axios.get("http://localhost:8000/api/messages", { withCredentials: true })
+    api.get("/messages/")
       .then((res) => setMessages(res.data))
       .catch((err) => console.error("Erreur chargement messages :", err));
-
-    axios.get("http://localhost:8000/api/users", { withCredentials: true })
-      .then((res) => {
-        const liste = res.data.filter((u) => u.role === "citoyen");
-        setCitoyens(liste);
-      })
-      .catch((err) => console.error("Erreur chargement utilisateurs :", err));
   }, []);
 
-  // Filtrer les messages selon le citoyen actif
+  const citoyens = useMemo(() => {
+    const parId = new Map();
+    messages.forEach((m) => {
+      if (!parId.has(m.citoyen)) {
+        parId.set(m.citoyen, { id: m.citoyen, nom: m.citoyen_nom });
+      }
+    });
+    return Array.from(parId.values());
+  }, [messages]);
+
   const messagesFiltres = messages.filter(
-    (m) => String(m.citoyen_id) === String(citoyenActif)
+    (m) => String(m.citoyen) === String(citoyenActif)
   );
 
   const handleSend = async () => {
     if (!reponse.trim() || !citoyenActif) return;
 
-    const nouveauMessage = {
-      auteur: "Agent",
-      contenu: reponse.trim(),
-      citoyen_id: citoyenActif,
-      date: new Date().toISOString(),
-    };
-
     try {
-      await axios.post("http://localhost:8000/api/messages", nouveauMessage, {
-        withCredentials: true,
+      const res = await api.post("/messages/", {
+        contenu: reponse.trim(),
+        citoyen: citoyenActif,
       });
-
-      setMessages([...messages, nouveauMessage]);
+      setMessages((prev) => [...prev, res.data]);
       setReponse("");
     } catch (err) {
       alert("Erreur lors de l'envoi du message.");
@@ -63,7 +63,7 @@ export default function ChatAgent() {
           <option value="">-- Sélectionner --</option>
           {citoyens.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.nom} ({c.email})
+              {c.nom}
             </option>
           ))}
         </select>
@@ -78,14 +78,16 @@ export default function ChatAgent() {
             {messagesFiltres.length === 0 ? (
               <p className="text-muted">Aucun message pour ce citoyen.</p>
             ) : (
-              messagesFiltres.map((m, i) => (
+              messagesFiltres.map((m) => (
                 <div
-                  key={i}
+                  key={m.id}
                   className={`mb-2 ${
-                    m.auteur === "Agent" ? "text-end" : "text-start"
+                    m.emetteur === user?.id ? "text-end" : "text-start"
                   }`}
                 >
-                  <small className="text-muted d-block">{m.auteur} - {new Date(m.date).toLocaleString()}</small>
+                  <small className="text-muted d-block">
+                    {m.auteur} - {new Date(m.created_at).toLocaleString()}
+                  </small>
                   <div className="bg-light p-2 rounded d-inline-block">
                     {m.contenu}
                   </div>

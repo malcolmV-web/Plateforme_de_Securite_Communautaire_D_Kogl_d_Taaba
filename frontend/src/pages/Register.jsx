@@ -1,41 +1,42 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../axios"; 
+import api from "../axios";
 
 export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [ville, setVille] = useState("");
+  const [erreur, setErreur] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErreur("");
     try {
-      const nouveau = {
-        name,
+      // Pas de champ "role" : l'API le force toujours a "citoyen" cote
+      // serveur, quoi qu'on envoie (voir audit backend).
+      await api.post("/auth/register/", {
+        first_name: name,
         email,
-        password: password,
+        password,
         ville,
-        role: "citoyen" // par défaut
-      };
-
-      await api.get("/sanctum/csrf-cookie");
-
-     
-      await api.post("/api/register", nouveau);
+      });
 
       alert("Inscription réussie !");
       navigate("/login");
     } catch (error) {
       console.error(error);
-      alert("Erreur lors de l’inscription.");
+      const data = error.response?.data;
+      const premierMessage = data && Object.values(data)[0]?.[0];
+      setErreur(premierMessage || "Erreur lors de l’inscription.");
     }
   };
 
   return (
     <div className="container">
       <h2>Inscription</h2>
+      {erreur && <div className="alert alert-danger">{erreur}</div>}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label>Nom :</label>

@@ -1,52 +1,48 @@
-/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../../axios";
+import { useAuth } from "../../context/AuthContext";
 
 export default function EspaceAgent() {
-  const [messages, setMessages] = useState([]);
+  const { user } = useAuth();
   const [groupedMessages, setGroupedMessages] = useState({});
   const [signalements, setSignalements] = useState([]);
-  const [utilisateur, setUtilisateur] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("utilisateur"));
-    if (!userData || userData.role !== "agent") {
+    // Correctif : l'ancienne version lisait la cle localStorage
+    // "utilisateur", jamais ecrite par AuthContext (qui utilise "user" via
+    // tokenStorage) — l'espace agent etait de fait inaccessible. On passe
+    // par useAuth(), source unique de verite pour la session.
+    if (!user || user.role !== "agent") {
       alert("Accès non autorisé.");
       navigate("/login");
       return;
     }
 
-    setUtilisateur(userData);
-
-    // Récupération des messages
-    axios
-      .get("http://localhost:8000/api/messages", { withCredentials: true })
+    api.get("/messages/")
       .then((res) => {
         const grouped = res.data.reduce((acc, msg) => {
-          const citoyenId = msg.citoyen_id || "inconnu";
-          if (!acc[citoyenId]) acc[citoyenId] = [];
-          acc[citoyenId].push(msg);
+          const citoyenId = msg.citoyen ?? "inconnu";
+          if (!acc[citoyenId]) acc[citoyenId] = { nom: msg.citoyen_nom, messages: [] };
+          acc[citoyenId].messages.push(msg);
           return acc;
         }, {});
         setGroupedMessages(grouped);
       })
       .catch((err) => console.error("Erreur chargement messages :", err));
 
-    // Récupération des signalements
-    axios
-      .get("http://localhost:8000/api/signalements", { withCredentials: true })
+    api.get("/signalements/")
       .then((res) => setSignalements(res.data))
       .catch((err) => console.error("Erreur chargement signalements :", err));
-  }, [navigate]);
+  }, [user, navigate]);
 
   return (
     <div className="container py-4">
       <h2>Espace Agent</h2>
       <hr />
       <p>
-        Bienvenue, <strong>{utilisateur?.nom ?? "..."}</strong>
+        Bienvenue, <strong>{user?.first_name ?? "..."}</strong>
       </p>
 
       {/* MESSAGES GROUPE PAR CITOYEN */}
@@ -55,18 +51,19 @@ export default function EspaceAgent() {
         {Object.entries(groupedMessages).length === 0 ? (
           <p>Aucun message pour le moment.</p>
         ) : (
-          Object.entries(groupedMessages).map(([citoyenId, msgs]) => (
+          Object.entries(groupedMessages).map(([citoyenId, { nom, messages: msgs }]) => (
             <div key={citoyenId} className="mb-4">
-              <h6 className="text-primary">Citoyen #{citoyenId}</h6>
+              <h6 className="text-primary">{nom || `Citoyen #${citoyenId}`}</h6>
               {msgs
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice()
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                 .map((msg) => (
                   <div key={msg.id} className="border rounded p-2 mb-1">
                     <p>
                       <strong>{msg.auteur}</strong> : {msg.contenu}
                     </p>
                     <small className="text-muted">
-                      {new Date(msg.date).toLocaleString()}
+                      {new Date(msg.created_at).toLocaleString()}
                     </small>
                   </div>
                 ))}
@@ -89,12 +86,14 @@ export default function EspaceAgent() {
         ) : (
           <ul className="list-group">
             {signalements
+              .slice()
               .sort((a, b) => b.id - a.id)
               .map((s) => (
                 <li key={s.id} className="list-group-item">
                   <strong>{s.titre}</strong> - <span>{s.type}</span>
+                  <span className="badge bg-secondary ms-2">{s.statut}</span>
                   <br />
-                  <small>{s.localisation}</small>
+                  <small>{s.lieu}</small>
                 </li>
               ))}
           </ul>

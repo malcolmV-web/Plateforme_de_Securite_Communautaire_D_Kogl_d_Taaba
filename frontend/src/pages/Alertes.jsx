@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../axios';
 
 export default function Alertes() {
   const [alertes, setAlertes] = useState([]);
@@ -9,7 +9,7 @@ export default function Alertes() {
   const [erreur, setErreur] = useState(null);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/alertes', { withCredentials: true })
+    api.get('/alertes/')
       .then(res => {
         setAlertes(res.data);
         setErreur(null);

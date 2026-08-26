@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../axios";
 
 export default function ConseilDetail() {
   const { id } = useParams();
@@ -10,8 +10,8 @@ export default function ConseilDetail() {
 
   useEffect(() => {
     setChargement(true);
-    axios
-      .get(`http://localhost:8000/api/conseils/${id}`, { withCredentials: true })
+    api
+      .get(`/conseils/${id}/`)
       .then((res) => {
         setConseil(res.data);
         setErreur(null);

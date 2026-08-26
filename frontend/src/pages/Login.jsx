@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import api from "../axios"; // utilise l'instance Axios configurée avec Sanctum
+import api from "../axios";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,36 +13,24 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErreur("");
     try {
-      // Récupère le cookie CSRF
-      await api.get("/sanctum/csrf-cookie");
+      // JWT : plus de cookie CSRF a recuperer, un seul appel suffit.
+      const res = await api.post("/auth/login/", { email, password });
+      const { access, refresh, user } = res.data;
 
-      // Envoie les données de connexion
-      const res = await api.post("/api/login", {
-        email: email,
-        password: password,
-      });
+      login({ access, refresh, user });
 
-      const utilisateur = res.data.user;
-
-      //  Si l'utilisateur existe, on le connecte
-      if (utilisateur) {
-        login(utilisateur);
-
-        //  Redirection selon rôle
-        if (utilisateur.role === "admin") {
-          navigate("/profil/admin");
-        } else if (utilisateur.role === "agent") {
-          navigate("/agent/espace");
-        } else {
-          navigate("/home");
-        }
+      if (user.role === "admin") {
+        navigate("/profil/admin");
+      } else if (user.role === "agent") {
+        navigate("/agent/espace");
       } else {
-        setErreur("Identifiants incorrects.");
+        navigate("/home");
       }
     } catch (error) {
       console.error(error);
-      setErreur("Erreur lors de la connexion.");
+      setErreur("Identifiants incorrects.");
     }
   };
 
