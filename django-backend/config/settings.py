@@ -42,6 +42,10 @@ INSTALLED_APPS = [
     # Applications internes
     "apps.accounts",
     "apps.signalements",
+    "apps.alertes",
+    "apps.conseils",
+    "apps.messages_app",
+    "apps.points_accueil",
 ]
 
 AUTH_USER_MODEL = "accounts.User"

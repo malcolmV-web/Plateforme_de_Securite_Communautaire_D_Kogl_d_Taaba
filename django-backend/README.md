@@ -14,12 +14,10 @@ Nouveau backend, destiné à remplacer progressivement `laravel-backend/`
   les signalements, contrôleur `AlerteController` cassé, etc.) — voir
   « Correctifs de sécurité » plus bas.
 
-## État actuel (étape 1/N)
+## État actuel (étape 2/N)
 
-Portée de cette première passe, avant de porter le reste des ressources
-(alertes, conseils, messages, points d'accueil) :
-
-- Squelette du projet (`config/`) + deux apps : `accounts` et `signalements`.
+- Squelette du projet (`config/`) + six apps : `accounts`, `signalements`,
+  `alertes`, `conseils`, `messages_app`, `points_accueil`.
 - Modèle `User` personnalisé (email comme identifiant, rôle
   `citoyen`/`agent`/`admin`, ville).
 - Auth JWT complète : `register`, `login`, `refresh`, `logout`
@@ -28,9 +26,21 @@ Portée de cette première passe, avant de porter le reste des ressources
   changer le rôle d'un compte.
 - Ressource `Signalement` complète (CRUD), avec upload de photo
   (nouveauté par rapport à Laravel).
+- Ressource `Alerte` : lecture ouverte à tout utilisateur connecté,
+  écriture réservée à l'admin (voir correctif ci-dessous — le
+  `AlerteController` Laravel était cassé *et* trop restrictif en lecture).
+- Ressource `Conseil` : lecture publique (sans authentification), écriture
+  admin — reprend le comportement Laravel.
+- Ressource `PointAccueil` : même schéma que `Conseil` (lecture publique,
+  écriture admin).
+- Ressource `Message` : reconstruite avec de vraies relations `citoyen`
+  (fil de conversation) et `emetteur` (qui a écrit) au lieu du champ texte
+  libre `auteur` + `citoyen_id` non contraint côté Laravel ; un citoyen ne
+  voit/écrit que dans sa propre conversation, un agent peut répondre à
+  n'importe quel citoyen en le précisant explicitement.
 
-Les autres ressources (Alerte, Conseil, Message, PointAccueil) seront
-portées dans une passe suivante, une fois ce socle validé.
+Reste à porter : rien côté ressources métier — la suite est le branchement
+du frontend et le chantier PWA (voir « Prochaines étapes »).
 
 ## Stockage des images
 
@@ -45,15 +55,18 @@ changement de modèle nécessaire.
 
 | # audit | Problème Laravel | Correctif Django |
 |---|---|---|
-| 1 | `AlerteController` cassé (mauvaise classe) | Sera reconstruit proprement lors du portage de la ressource Alerte |
+| 1 | `AlerteController` cassé (mauvaise classe) — et route API entièrement `role:admin` y compris en lecture, ce qui empêchait aussi les citoyens de consulter les alertes une fois corrigé | Ressource reconstruite ; lecture ouverte à tout utilisateur connecté, écriture (publication) réservée à l'admin |
 | 2 | `role` accepté du client à l'inscription | `RegisterSerializer` force `role=citoyen`, ignore tout `role` envoyé ; seul `/api/users/` (admin) peut changer un rôle |
-| 3 | Mass assignment (`$request->all()`), pas de vérif de propriété | Serializers DRF à champs explicites ; `user` toujours forcé au user authentifié ; queryset filtré par rôle (`IsOwnerOrAgent`) — un citoyen ne voit/modifie que ses propres signalements |
+| 3 | Mass assignment (`$request->all()`), pas de vérif de propriété | Serializers DRF à champs explicites ; `user`/`emetteur`/`admin` toujours forcés au user authentifié ; queryset filtré par rôle (`IsOwnerOrAgent` sur Signalement, filtrage par `citoyen` sur Message) — un citoyen ne voit/modifie que ses propres signalements et messages |
 | — | Password re-stocké en clair sur update | `set_password()` systématique dans les serializers admin |
+| — | `Message.citoyen_id` non contraint, `auteur` en texte libre dupliqué | Vraies FK `citoyen`/`emetteur` vers `User`, nom affiché dérivé via `get_full_name()` |
 
 Testé manuellement (register avec injection de `role`, IDOR entre deux
-citoyens, verrouillage des champs pour un agent sauf `statut`, promotion de
-rôle réservée à l'admin) — voir l'historique de session pour le détail des
-appels curl.
+citoyens sur Signalement et sur Message, verrouillage des champs pour un
+agent sauf `statut`, promotion de rôle réservée à l'admin, lecture publique
+de Conseil/PointAccueil vs lecture Alerte réservée aux connectés, écriture
+partout réservée à l'admin) — voir l'historique de session pour le détail
+des appels curl.
 
 ## Installation locale
 
@@ -70,8 +83,6 @@ python manage.py runserver
 
 ## Prochaines étapes (hors de cette passe)
 
-- Porter Alerte, Conseil, Message, PointAccueil sur le même modèle
-  (serializers explicites + permissions par rôle).
 - Brancher le frontend React sur cette nouvelle API (remplacer les appels
   `axios` codés en dur vers Laravel).
 - Rendre le frontend installable en **PWA** (manifest + service worker) pour
