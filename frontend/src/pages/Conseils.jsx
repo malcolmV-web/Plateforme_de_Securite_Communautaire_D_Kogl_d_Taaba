@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import api from "../axios";
 
 export default function Conseils() {
   const [conseils, setConseils] = useState([]);
@@ -8,8 +8,8 @@ export default function Conseils() {
   const [erreur, setErreur] = useState(null);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:8000/api/conseils", { withCredentials: true })
+    api
+      .get("/conseils/")
       .then((res) => {
         setConseils(res.data);
         setErreur(null); 

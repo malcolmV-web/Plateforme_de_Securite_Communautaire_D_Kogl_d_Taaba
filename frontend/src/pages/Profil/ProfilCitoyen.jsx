@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -15,16 +15,10 @@ export default function ProfilCitoyen() {
       return;
     }
 
-    axios.get("http://localhost:8000/api/signalements", {
-      withCredentials: true,
-    })
-      .then(res => {
-        // Vérifie selon le format retourné par l’API
-        const signalementsUser = res.data.filter(sig =>
-          sig.user_id === user.id || sig.utilisateurId === user.id || sig.utilisateur?.id === user.id
-        );
-        setSignalements(signalementsUser);
-      })
+    // L'API ne renvoie deja que les signalements du citoyen connecte
+    // (voir SignalementViewSet.get_queryset) : pas besoin de filtrer ici.
+    api.get("/signalements/")
+      .then(res => setSignalements(res.data))
       .catch(err => {
         console.error("Erreur lors du chargement des signalements :", err);
       })
@@ -38,7 +32,7 @@ export default function ProfilCitoyen() {
     <div className="container py-5">
       <h3>Mon Profil</h3>
       <hr />
-      <p><strong>Nom :</strong> {user.nom ?? 'Non défini'}</p>
+      <p><strong>Nom :</strong> {user.first_name ?? 'Non défini'}</p>
       <p><strong>Email :</strong> {user.email}</p>
       <p><strong>Ville :</strong> {user.ville ?? 'Non précisée'}</p>
 
@@ -50,9 +44,15 @@ export default function ProfilCitoyen() {
         <ul className="list-group">
           {signalements.map(sig => (
             <li key={sig.id} className="list-group-item">
-              <strong>{sig.titre}</strong><br />
+              <strong>{sig.titre}</strong>
+              <span className="badge bg-secondary ms-2">{sig.statut}</span><br />
               <span>{sig.description}</span><br />
-              <small className="text-muted">Lieu : {sig.localisation}</small>
+              <small className="text-muted">Lieu : {sig.lieu}</small>
+              {sig.photo && (
+                <div className="mt-2">
+                  <a href={sig.photo} target="_blank" rel="noopener noreferrer">Voir la photo jointe</a>
+                </div>
+              )}
             </li>
           ))}
         </ul>

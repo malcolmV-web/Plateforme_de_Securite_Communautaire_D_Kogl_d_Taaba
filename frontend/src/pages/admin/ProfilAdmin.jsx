@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../axios";
 
 export default function ProfilAdmin() {
   const [utilisateurs, setUtilisateurs] = useState([]);
@@ -12,41 +11,43 @@ export default function ProfilAdmin() {
   const [pointForm, setPointForm] = useState({ nom: "", type: "Police", ville: "", contact: "" });
 
   useEffect(() => {
-    axios.get("http://localhost:8000/api/users", { withCredentials: true })
+    api.get("/users/")
       .then(res => setUtilisateurs(res.data))
       .catch(err => console.error("Erreur chargement utilisateurs", err));
 
-    axios.get("http://localhost:8000/api/alertes", { withCredentials: true })
+    api.get("/alertes/")
       .then(res => setAlertes(res.data))
       .catch(err => console.error("Erreur chargement alertes", err));
 
-    axios.get("http://localhost:8000/api/points-accueil", { withCredentials: true })
+    api.get("/points-accueil/")
       .then(res => setPoints(res.data))
       .catch(err => console.error("Erreur chargement points d’accueil", err));
   }, []);
 
   const supprimerAlerte = async (id) => {
     try {
-      await axios.delete(`http://localhost:8000/api/alertes/${id}`, { withCredentials: true });
+      await api.delete(`/alertes/${id}/`);
       setAlertes(alertes.filter(a => a.id !== id));
-    
     } catch (err) {
+      console.error(err);
       alert("Échec de la suppression de l'alerte");
     }
   };
 
   const ajouterAlerte = async (e) => {
     e.preventDefault();
-    const nouvelleAlerte = {
-      ...alerteForm,
-      admin_id: 3, // à adapter dynamiquement si possible
-      date_publication: new Date().toISOString(),
-    };
     try {
-      const res = await axios.post("http://localhost:8000/api/alertes", nouvelleAlerte, { withCredentials: true });
+      // `admin` est force au user authentifie cote serveur, pas besoin de
+      // l'envoyer (l'ancienne version codait un admin_id=3 en dur).
+      const nouvelleAlerte = {
+        ...alerteForm,
+        date_publication: new Date().toISOString(),
+      };
+      const res = await api.post("/alertes/", nouvelleAlerte);
       setAlertes([res.data, ...alertes]);
       setAlerteForm({ ville: "", niveau: "info", message: "" });
     } catch (err) {
+      console.error(err);
       alert("Erreur lors de la création de l’alerte");
     }
   };
@@ -55,12 +56,14 @@ export default function ProfilAdmin() {
     const utilisateur = utilisateurs.find(u => u.id === parseInt(promotionUserId));
     if (!utilisateur || utilisateur.role !== "citoyen") return;
 
-    const modifie = { ...utilisateur, role: "agent" };
     try {
-      await axios.put(`http://localhost:8000/api/users/${promotionUserId}`, modifie, { withCredentials: true });
-      setUtilisateurs(utilisateurs.map(u => u.id === modifie.id ? modifie : u));
+      // PATCH partiel : on ne touche qu'au role, pas besoin de renvoyer
+      // tout l'objet utilisateur.
+      const res = await api.patch(`/users/${promotionUserId}/`, { role: "agent" });
+      setUtilisateurs(utilisateurs.map(u => u.id === res.data.id ? res.data : u));
       setPromotionUserId("");
     } catch (err) {
+      console.error(err);
       alert("Erreur lors de la promotion");
     }
   };
@@ -68,10 +71,11 @@ export default function ProfilAdmin() {
   const ajouterPointAccueil = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:8000/api/points-accueil", pointForm, { withCredentials: true });
+      const res = await api.post("/points-accueil/", pointForm);
       setPoints([...points, res.data]);
       setPointForm({ nom: "", type: "Police", ville: "", contact: "" });
     } catch (err) {
+      console.error(err);
       alert("Erreur lors de l’ajout du point d’accueil");
     }
   };
@@ -135,7 +139,7 @@ export default function ProfilAdmin() {
             onChange={(e) => setPromotionUserId(e.target.value)}>
             <option value="">-- Sélectionner un citoyen --</option>
             {utilisateurs.filter(u => u.role === "citoyen").map(u => (
-              <option key={u.id} value={u.id}>{u.nom} ({u.email})</option>
+              <option key={u.id} value={u.id}>{u.first_name} ({u.email})</option>
             ))}
           </select>
           <button className="btn btn-primary" onClick={promouvoirUtilisateur}>Promouvoir</button>
@@ -152,7 +156,7 @@ export default function ProfilAdmin() {
           <tbody>
             {utilisateurs.map(u => (
               <tr key={u.id}>
-                <td>{u.nom}</td>
+                <td>{u.first_name}</td>
                 <td>{u.email}</td>
                 <td>{u.ville}</td>
                 <td>{u.role}</td>

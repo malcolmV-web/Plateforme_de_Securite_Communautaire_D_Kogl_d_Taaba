@@ -88,3 +88,15 @@ python manage.py runserver
 - Rendre le frontend installable en **PWA** (manifest + service worker) pour
   l'usage en mobilité sur le terrain — chantier frontend séparé, à traiter
   une fois l'API Django validée.
+- **Garde-fous sur les actions admin sensibles** (`/api/users/{id}/`) : un
+  admin peut aujourd'hui réinitialiser le mot de passe ou modifier les
+  informations personnelles de n'importe quel compte, sans trace ni
+  notification. Nécessaire pour un usage en production, pas bloquant pour
+  la suite du développement :
+  - journaliser ces actions (qui, quand, quel champ modifié) — par ex. via
+    `django-simple-history` ou un modèle `AuditLog` dedie ;
+  - notifier l'utilisateur concerné quand son mot de passe ou ses
+    informations sont modifiés par un admin (nécessite d'abord un backend
+    d'envoi d'email/SMS, absent pour l'instant) ;
+  - envisager un vrai flux "mot de passe oublié" self-service pour réduire
+    le besoin de reinitialisation manuelle par l'admin.

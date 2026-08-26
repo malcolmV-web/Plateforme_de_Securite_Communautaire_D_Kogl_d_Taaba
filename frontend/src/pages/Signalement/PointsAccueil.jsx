@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../axios';
 import Sidebar from '../../components/Sidebar';
 
 export default function PointsAccueil() {
@@ -7,9 +7,7 @@ export default function PointsAccueil() {
   const [erreur, setErreur] = useState(null);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/points-accueil', {
-      withCredentials: true
-    })
+    api.get('/points-accueil/')
       .then(res => {
         setPoints(res.data);
         setErreur(null);

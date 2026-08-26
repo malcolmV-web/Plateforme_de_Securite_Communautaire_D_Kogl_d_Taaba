@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import api from "../axios"; 
+import api from "../axios";
+import { getRefreshToken } from "../auth/tokenStorage";
 
 export default function Logout() {
   const { logout } = useAuth();
@@ -10,11 +11,16 @@ export default function Logout() {
   useEffect(() => {
     const handleLogout = async () => {
       try {
-        await api.post("/api/logout"); 
+        // Met le refresh token en liste noire cote serveur (il ne pourra
+        // plus servir a obtenir un nouvel access token).
+        const refresh = getRefreshToken();
+        if (refresh) {
+          await api.post("/auth/logout/", { refresh });
+        }
       } catch (error) {
         console.error("Erreur lors de la déconnexion :", error);
       } finally {
-        logout(); 
+        logout();
         navigate("/login");
       }
     };

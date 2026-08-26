@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../axios';
 
 export default function AlerteDetail() {
   const { id } = useParams();
@@ -10,9 +10,7 @@ export default function AlerteDetail() {
 
   useEffect(() => {
     setChargement(true);
-    axios.get(`http://localhost:8000/api/alertes/${id}`, {
-      withCredentials: true
-    })
+    api.get(`/alertes/${id}/`)
     .then(res => {
       setAlerte(res.data);
       setErreur(null);

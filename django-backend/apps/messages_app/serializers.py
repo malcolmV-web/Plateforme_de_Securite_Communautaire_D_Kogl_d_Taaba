@@ -22,10 +22,14 @@ class MessageSerializer(serializers.ModelSerializer):
         queryset=User.objects.filter(role=User.Role.CITOYEN),
         required=False,
     )
+    # Nom du citoyen proprietaire de la conversation (utile cote agent pour
+    # regrouper/afficher les fils de discussion sans avoir a interroger
+    # /api/users/, reserve aux admins).
+    citoyen_nom = serializers.CharField(source="citoyen.get_full_name", read_only=True)
 
     class Meta:
         model = Message
-        fields = ["id", "citoyen", "emetteur", "auteur", "contenu", "created_at"]
+        fields = ["id", "citoyen", "citoyen_nom", "emetteur", "auteur", "contenu", "created_at"]
         read_only_fields = ["id", "created_at"]
 
     def validate(self, attrs):

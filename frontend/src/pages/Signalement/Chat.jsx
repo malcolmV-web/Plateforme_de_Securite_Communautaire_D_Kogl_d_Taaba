@@ -1,23 +1,22 @@
 import { useEffect, useState, useRef } from 'react';
 import Sidebar from '../../components/Sidebar';
-import axios from 'axios';
+import api from '../../axios';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Chat() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [nouveauMessage, setNouveauMessage] = useState('');
-  // eslint-disable-next-line no-unused-vars
-  const [pseudo, setPseudo] = useState('Citoyen'); // À remplacer par l'utilisateur connecté
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef(null);
 
-  // Charger les messages au montage
+  // Charger les messages au montage (l'API ne renvoie que la conversation
+  // du citoyen connecte).
   useEffect(() => {
-    axios.get('http://localhost:8000/api/messages', {
-      withCredentials: true
-    })
-    .then(res => setMessages(res.data))
-    .catch(() => alert("Erreur lors du chargement des messages."))
-    .finally(() => setLoading(false));
+    api.get('/messages/')
+      .then(res => setMessages(res.data))
+      .catch(() => alert("Erreur lors du chargement des messages."))
+      .finally(() => setLoading(false));
   }, []);
 
   // Scroller vers le bas automatiquement
@@ -28,20 +27,9 @@ export default function Chat() {
   const handleSend = async () => {
     if (!nouveauMessage.trim()) return;
 
-    const nouveau = {
-      auteur: pseudo,
-      contenu: nouveauMessage,
-    };
-
     try {
-      // Assurer que le cookie CSRF est récupéré
-      await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
-        withCredentials: true
-      });
-
-      const res = await axios.post("http://localhost:8000/api/messages", nouveau, {
-        withCredentials: true
-      });
+      // citoyen et emetteur sont forces cote serveur au user connecte.
+      const res = await api.post('/messages/', { contenu: nouveauMessage });
 
       setMessages(prev => [...prev, res.data]);
       setNouveauMessage('');
@@ -64,7 +52,7 @@ export default function Chat() {
             <p className="text-muted">Aucun message pour l’instant.</p>
           ) : (
             messages.map((msg) => (
-              <div key={msg.id} className={`mb-2 ${msg.auteur === 'Citoyen' ? 'text-start' : 'text-end'}`}>
+              <div key={msg.id} className={`mb-2 ${msg.emetteur === user?.id ? 'text-end' : 'text-start'}`}>
                 <small className="text-muted">{msg.auteur}</small>
                 <div className="bg-light p-2 rounded d-inline-block">{msg.contenu}</div>
               </div>

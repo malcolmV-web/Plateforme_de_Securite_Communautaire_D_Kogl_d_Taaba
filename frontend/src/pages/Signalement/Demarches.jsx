@@ -1,15 +1,15 @@
-/* eslint-disable no-unused-vars */
 import { useState } from 'react';
 import Sidebar from '../../components/Sidebar';
-import axios from 'axios';
+import api from '../../axios';
 
 export default function Demarches() {
   const [formData, setFormData] = useState({
     type: '',
     titre: '',
     description: '',
-    localisation: ''
+    lieu: ''
   });
+  const [photo, setPhoto] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -24,19 +24,21 @@ export default function Demarches() {
     setMessage({});
 
     try {
-      // Obtenir le cookie CSRF (Sanctum)
-      await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
-        withCredentials: true
-      });
+      // multipart/form-data : necessaire pour joindre la photo (Django ne
+      // l'accepte pas en JSON).
+      const payload = new FormData();
+      Object.entries(formData).forEach(([key, value]) => payload.append(key, value));
+      if (photo) payload.append('photo', photo);
 
-      // Envoyer le signalement
-      await axios.post("http://localhost:8000/api/signalements", formData, {
-        withCredentials: true
+      await api.post('/signalements/', payload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       setMessage({ type: 'success', text: 'Signalement envoyé avec succès.' });
-      setFormData({ type: '', titre: '', description: '', localisation: '' });
+      setFormData({ type: '', titre: '', description: '', lieu: '' });
+      setPhoto(null);
     } catch (err) {
+      console.error(err);
       setMessage({ type: 'error', text: 'Erreur lors de l’envoi du signalement.' });
     } finally {
       setLoading(false);
@@ -105,16 +107,27 @@ export default function Demarches() {
           </div>
 
           <div className="mb-3">
-            <label htmlFor="localisation" className="form-label">Localisation (ville ou lieu)</label>
+            <label htmlFor="lieu" className="form-label">Localisation (ville ou lieu)</label>
             <input
               type="text"
-              id="localisation"
+              id="lieu"
               className="form-control"
-              name="localisation"
-              value={formData.localisation}
+              name="lieu"
+              value={formData.lieu}
               onChange={handleChange}
               placeholder="Ex : Ouagadougou"
               required
+            />
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="photo" className="form-label">Photo (optionnel)</label>
+            <input
+              type="file"
+              id="photo"
+              className="form-control"
+              accept="image/*"
+              onChange={(e) => setPhoto(e.target.files[0] ?? null)}
             />
           </div>
 
